@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minmall.mappers.AdminMapper">
+
+	<!-- 관리자 로그인 -->
+	<select id="login" parameterType="AdminDTO" resultType ="AdminVO">
+		select admin_id, admin_pw, admin_name, admin_lastdate
+		from admin_tbl
+		where admin_id=#{admin_id} and admin_pw=#{admin_pw}
+	</select>
+	
+	<!-- 관리자 로그인 시간 업데이트 -->
+	<update id="loginUpdate" parameterType="string">
+		update admin_tbl
+		set admin_lastdate = sysdate
+		where admin_id=#{admin_id}
+	</update>
+
+	<!-- 회원 목록 -->
+	<select id="mbsList" parameterType="SearchCriteria" resultType="MemberDTO">
+		select mbs_id, mbs_nick, mbs_name, mbs_point, mbs_lastlogin
+		from (select mbs_id, mbs_nick, mbs_name, mbs_point, mbs_lastlogin,
+					 row_number() over (order by mbs_id asc) p_seq from mbs_tbl
+					 <include refid="search" />)
+		where p_seq between #{rowStart} and #{rowEnd}
+	</select>
+	
+	<!-- 주문개수 -->
+	<select id="searchListMbsCount" parameterType="SearchCriteria" resultType="int">
+			select count(mbs_id)
+			from mbs_tbl
+			<include refid="search" />
+	</select>
+	
+	<!-- 검색 조건  -->
+	<sql id="search">
+		<if test="searchType != null">
+			<!-- 상품명 -->
+			<if test="searchType == 'id'.toString()"> 
+				where mbs_id like '%' || #{keyword} || '%'
+			</if>
+			<!-- 내용 -->
+			<if test="searchType == 'nick'.toString()"> 
+				where mbs_nick like '%' || #{keyword} || '%'
+			</if>
+			<!-- 제조사 -->
+			<if test="searchType == 'name'.toString()"> 
+				where mbs_name like '%' || #{keyword} || '%'
+			</if>
+			<!-- 상품명 + 내용 + 제조사 -->
+			<if test="searchType == 'all'.toString()"> 
+				where (mbs_id like '%' || #{keyword} || '%')
+				or (mbs_nick like '%' || #{keyword} || '%')
+				or (mbs_name like '%' || #{keyword} || '%')
+			</if>
+		</if>
+	</sql>
+	
+</mapper>

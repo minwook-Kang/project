@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minmall.mappers.MemberMapper">
+	
+	<!-- MemberVO 가져오기 -->
+	<select id="readMem" parameterType="string" resultType="MemberVO">
+		select  mbs_id, mbs_name, mbs_pw, mbs_email, mbs_zipcode, mbs_addr, mbs_deaddr, 
+			mbs_phone, mbs_nick, mbs_accept_e, mbs_point, 
+			mbs_datesub, mbs_update, mbs_lastlogin, mbs_authcode
+		from mbs_tbl
+		where mbs_id = #{mbs_id}
+	</select> 
+	
+	<!-- 로그인(MemberDTO 가져옴) 비번을 파라미터 사용안하고 있음에 주의 -->
+	<select id="login" parameterType="MemberDTO" resultType="MemberDTO">
+		select mbs_id, mbs_pw, mbs_nick, mbs_name, mbs_point, mbs_lastlogin
+		from mbs_tbl
+		where mbs_id=#{mbs_id}
+	</select>
+	
+	<!-- 로그인 시간 업데이트 -->
+	<update id="loginUpdate" parameterType="string">
+		update mbs_tbl
+		set mbs_lastlogin = sysdate
+		where mbs_id = #{mbs_id}
+	</update>
+	
+	<!-- 회원가입 -->
+	<insert id="join" parameterType="MemberVO">
+		insert into mbs_tbl(mbs_id, mbs_name, mbs_pw, mbs_email, mbs_zipcode, mbs_addr, mbs_deaddr, mbs_phone, mbs_nick, mbs_accept_e)
+		values(#{mbs_id}, #{mbs_name}, #{mbs_pw}, #{mbs_email}, #{mbs_zipcode},#{mbs_addr}, #{mbs_deaddr}, #{mbs_phone}, #{mbs_nick}, #{mbs_accept_e})
+	</insert>
+
+	<!-- 아이디 중복 체크 -->
+	<select id="checkIdOverlap" parameterType="string" resultType="String">
+		select mbs_id
+		from mbs_tbl
+		where mbs_id = #{mbs_id}
+	</select>
+	
+	<!-- 회원정보 수정 -->
+	<update id="modifyMemInfo" parameterType="MemberVO" >
+		update mbs_tbl
+		set mbs_name=#{mbs_name}, mbs_nick=#{mbs_nick}, mbs_email=#{mbs_email},
+			mbs_phone=#{mbs_phone}, mbs_zipcode=#{mbs_zipcode}, mbs_addr=#{mbs_addr}, 
+			mbs_deaddr=#{mbs_deaddr}, mbs_accept_e=#{mbs_accept_e}, mbs_update=sysdate
+		where mbs_id=#{mbs_id}	
+	</update>
+	
+	<!-- 비밀번호 변경 -->
+	<update id="changePw" parameterType="MemberDTO">
+		update mbs_tbl
+		set mbs_pw = #{mbs_pw}
+		where mbs_id=#{mbs_id}
+	</update>
+	
+	<!-- 회원 탈퇴 -->
+	<delete id="deleteMem" parameterType="string">
+		delete from mbs_tbl
+		where mbs_id=#{mbs_id}
+	</delete>
+	
+	<!-- 상품 구매시 포인트 -->
+	<update id="pointUp" parameterType="map">
+		update mbs_tbl
+		set mbs_point = #{or} * 0.01
+		where mbs_id=#{mbs_id}
+	</update>
+	 
+</mapper>

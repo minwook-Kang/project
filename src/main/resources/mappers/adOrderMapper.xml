@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.minmall.mappers.AdOrderMapper">
+
+	<!-- 주문현황 -->
+	<select id="orderListAdmin" parameterType="SearchCriteria" resultType="OrderVO">
+		select ord_code, mbs_id, ord_name, ord_totalprice, ord_regdate, ord_delivery 
+		from (select ord_code, mbs_id, ord_name, ord_totalprice, ord_regdate, ord_delivery,
+			   		 row_number() over (order by ord_code asc) p_seq from order_tbl
+			   		 <include refid="search" /> )
+		where p_seq between #{rowStart} and #{rowEnd}
+	</select>
+	
+	<!-- 주문개수 -->
+	<select id="searchListOrderCount" parameterType="SearchCriteria" resultType="int">
+			select count(ord_code)
+			from order_tbl
+			<include refid="search" />
+	</select>
+	
+	
+	<!-- 배송현황 수정 -->
+	<update id="deliveryModify" parameterType="orderVO">
+		update order_tbl
+		set ord_delivery = #{ord_delivery}
+		where ord_code = #{ord_code}	
+	</update>
+	
+	<!-- 검색 조건  -->
+	<sql id="search">
+		<if test="searchType != null">
+			<!-- 상품명 -->
+			<if test="searchType == 'code'.toString()"> 
+				where ord_code like '%' || #{keyword} || '%'
+			</if>
+			<!-- 내용 -->
+			<if test="searchType == 'id'.toString()"> 
+				where mbs_id like '%' || #{keyword} || '%'
+			</if>
+			<!-- 제조사 -->
+			<if test="searchType == 'delivery'.toString()"> 
+				where ord_delivery like '%' || #{keyword} || '%'
+			</if>
+			<!-- 상품명 + 내용 + 제조사 -->
+			<if test="searchType == 'all'.toString()"> 
+				where (ord_code like '%' || #{keyword} || '%')
+				or (mbs_id like '%' || #{keyword} || '%')
+				or (ord_delivery like '%' || #{keyword} || '%')
+			</if>
+		</if>
+	</sql>
+	
+</mapper>
